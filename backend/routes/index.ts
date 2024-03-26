@@ -5,6 +5,6 @@ const router = express.Router();
 
 
 router.use('/user',userRouter);
-router.use('/accounts',accountRouter);
+router.use('/todos',accountRouter);
 
 export default router;
