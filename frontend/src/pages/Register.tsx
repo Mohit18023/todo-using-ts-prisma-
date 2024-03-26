@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { FormEvent, useState } from "react";
 import Heading from "../components/Heading"
 import InputBox from "../components/InputBox";
 import SubHeading from "../components/SubHeading";
@@ -8,14 +8,16 @@ import Footer from "../components/Footer";
 
 export default function Register() {
     const [name, setName] = useState('');
-    const [email,seEmail] = useState('');
+    const [email,setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [checked, setChecked] = useState(false);
 
-    const handleSubmit = () => {
-      // Add your code here
-    }
+    const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+      e.preventDefault(); // Prevent the default form submission behavior
+      console.log(name,email, password);
+      // Add your form submission logic here
+    };
   return (
     <div className="bg-gray-50 dark:bg-gray-900 w-100% h-100%">
       <section className="bg-gray-50 dark:bg-gray-900 h-100%">
@@ -36,7 +38,7 @@ export default function Register() {
                   name="email"
                   placeholder="email"
                   type="email"
-                  onChange={(e) => seEmail(e.target.value)}
+                  onChange={(e) => setEmail(e.target.value)}
                   value={email}
                 />
                 <InputBox
