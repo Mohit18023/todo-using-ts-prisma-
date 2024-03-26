@@ -4,10 +4,11 @@ import zod from "zod";
 import { PrismaClient } from "@prisma/client";
 import jwt, { Secret, GetPublicKeyOrSecret } from "jsonwebtoken";
 import { authMiddleware } from "../middleware";
+import bcrypt from "bcrypt";
 
 // Ensure JWT_SECRET is defined correctly
 const JWT_SECRET: string | undefined = process.env.JWT_SECRET;
-
+const SALT_ROUNDS = 10;
 // Define the schema for the user
 const signupSchema = zod.object({
   name: zod.string(),
@@ -15,6 +16,29 @@ const signupSchema = zod.object({
   password: zod.string().min(8),
 });
 
+// define the hash password
+async function hashPassword(password: string): Promise<string> {
+    try{
+        const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+
+        return hashedPassword;
+    }
+    catch(err){
+        throw new Error("Password hashed failed");
+    }
+}
+
+async function comaprePassword(password: string, hashedPassword: string): Promise<boolean> {
+    try{
+        const match: boolean = await bcrypt.compare(password, hashedPassword);
+        return match;
+    }
+    catch(err){
+        throw new Error("Password hashed failed");
+    }
+}
+
+// Define the Prisma client
 const prisma = new PrismaClient();
 
 router.post("/register", async (req: Request, res: Response) => {
@@ -36,13 +60,13 @@ router.post("/register", async (req: Request, res: Response) => {
       message: "User already exists",
     });
   }
-
+   const hashedPassword = await hashPassword(req.body.password);
   // Create the user
   const user = await prisma.user.create({
     data: {
       name: req.body.name,
       email: req.body.email,
-      password: req.body.password,
+      password: hashedPassword,
     },
   });
   const userId = user.id;
@@ -88,7 +112,7 @@ router.post("/login", async (req: Request, res: Response) => {
     }
 
     // Check if the password is correct
-    if (user.password !== req.body.password) {
+    if (!(await comaprePassword(req.body.password, user.password))) {
       return res.status(401).json({ message: "Invalid password" });
     }
 
