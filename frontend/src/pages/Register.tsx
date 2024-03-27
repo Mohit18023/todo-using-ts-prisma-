@@ -1,4 +1,6 @@
 import { FormEvent, useState } from "react";
+import axios from 'axios';
+import { useNavigate } from "react-router-dom";
 import Heading from "../components/Heading"
 import InputBox from "../components/InputBox";
 import SubHeading from "../components/SubHeading";
@@ -12,11 +14,39 @@ export default function Register() {
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [checked, setChecked] = useState(false);
+    const navigate = useNavigate();
 
     const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
       e.preventDefault(); // Prevent the default form submission behavior
       console.log(name,email, password);
       // Add your form submission logic here
+      const data = JSON.stringify({
+        name: name,
+        email: email,
+        password: password,
+      });
+
+      const config = {
+        method: "post",
+        maxBodyLength: Infinity,
+        url: "http://localhost:5000/api/v1/user/register",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        data: data,
+      };
+
+      axios
+        .request(config)
+        .then((response) => {
+          console.log(JSON.stringify(response.data));
+          localStorage.setItem("token", response.data.token);
+          navigate("/api/v1/dashboard");
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+
     };
   return (
     <div className="bg-gray-50 dark:bg-gray-900 " id="main">

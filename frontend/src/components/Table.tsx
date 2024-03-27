@@ -1,3 +1,4 @@
+import axios from 'axios';
 interface todosInterface {
   title: string;
   description: string;
@@ -5,10 +6,12 @@ interface todosInterface {
 }
 interface TableProps {
     todos: todosInterface[];
+    fetchTodos: () => Promise<void>;
     
 }
+ 
 
-export default function Table( {todos}: TableProps) {
+export default function Table( {todos, fetchTodos}: TableProps) {
   return (
     <div>
       <div className="relative overflow-x-auto">
@@ -34,7 +37,28 @@ export default function Table( {todos}: TableProps) {
                 <td className="px-6 py-4">{todo.description}</td>
                 <td className="px-6 py-4">{todo.completed ? "Yes" : "No"}</td>
                 <td className="px-6 py-4 item-centre">
-                  <button className="display-flex justify-center items-center">
+                  <button className="display-flex justify-center items-center" onClick={async() => {
+                      const token = localStorage.getItem("token");
+                      const config = {
+                        method: "put",
+                        maxBodyLength: Infinity,
+                        url: `http://localhost:5000/api/v1/todos/delete?todo=${todo.title}`,
+                        headers: {
+                          Authorization:
+                            "Bearer " + token,
+                        },
+                      };
+
+                      axios
+                        .request(config)
+                        .then((response) => {
+                          console.log(JSON.stringify(response.data));
+                          fetchTodos();
+                        })
+                        .catch((error) => {
+                          console.log(error);
+                        });
+                  }}>
                     {""}
                     <svg
                       className="h-5 w-5 text-red-500"

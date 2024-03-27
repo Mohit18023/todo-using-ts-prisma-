@@ -1,4 +1,6 @@
 import { FormEvent, useState } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import Heading from "../components/Heading";
 import InputBox from "../components/InputBox";
 import SubHeading from "../components/SubHeading";
@@ -8,11 +10,37 @@ import Footer from "../components/Footer";
 export default function Login() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const navigate = useNavigate();
 
     const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
       e.preventDefault(); // Prevent the default form submission behavior
       console.log(email, password);
       // Add your form submission logic here
+      const data = {
+        email,
+        password,
+      }
+
+      const config = {
+        method: "post",
+        maxBodyLength: Infinity,
+        url: "http://localhost:5000/api/v1/user/login",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        data: data,
+      };
+
+      axios
+        .request(config)
+        .then((response) => {
+          console.log(JSON.stringify(response.data));
+          localStorage.setItem("token", response.data.token);
+          navigate("/api/v1/dashboard");
+        })
+        .catch((error) => {
+          console.log(error);
+        });
     };
 
   return (

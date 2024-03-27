@@ -28,14 +28,18 @@ async function hashPassword(password: string): Promise<string> {
     }
 }
 
-async function comaprePassword(password: string, hashedPassword: string): Promise<boolean> {
-    try{
-        const match: boolean = await bcrypt.compare(password, hashedPassword);
-        return match;
-    }
-    catch(err){
-        throw new Error("Password hashed failed");
-    }
+async function comparePassword(
+  password: string,
+  hashedPassword: string
+): Promise<boolean> {
+  try {
+    const match: boolean = await bcrypt.compare(password, hashedPassword);
+    return match;
+  } catch (err) {
+    // Log or handle the error appropriately
+    console.error("Password comparison failed:", err);
+    throw new Error("Password comparison failed");
+  }
 }
 
 // Define the Prisma client
@@ -112,7 +116,7 @@ router.post("/login", async (req: Request, res: Response) => {
     }
 
     // Check if the password is correct
-    if (!(await comaprePassword(req.body.password, user.password))) {
+    if (!(await comparePassword(req.body.password, user.password))) {
       return res.status(401).json({ message: "Invalid password" });
     }
 

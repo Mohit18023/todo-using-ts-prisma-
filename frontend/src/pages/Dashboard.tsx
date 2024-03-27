@@ -1,4 +1,5 @@
 import { FormEvent, useState, useEffect } from "react";
+import axios from "axios";
 import Button from "../components/Button";
 import Heading from "../components/Heading";
 import InputBox from "../components/InputBox";
@@ -17,23 +18,61 @@ export default function Dashboard() {
   const [description, setDescription] = useState("");
   const [todos, setTodos] = useState([] as todosInterface[]);
 
+  async function fetchTodos() {
+    const config = {
+      method: "get",
+      maxBodyLength: Infinity,
+      url: "http://localhost:5000/api/v1/todos/todos",
+      headers: {
+        Authorization: "Bearer " + localStorage.getItem("token"),
+      },
+    };
 
+    axios
+      .request(config)
+      .then((response) => {
+        console.log(JSON.stringify(response.data));
+        setTodos(response.data.todos);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }
+  useEffect(() => {
+    // Add your API call for todos here
+    fetchTodos();
+  }, []);
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault(); // Prevent the default form submission behavior
     console.log(title, description);
     // Add your form submission logic here
+    const data = {
+      title,
+      description,
+      completed: false,
+    };
+
+    const config = {
+      method: "post",
+      maxBodyLength: Infinity,
+      url: "http://localhost:5000/api/v1/todos/add",
+      headers: {
+        Authorization: "Bearer " + localStorage.getItem("token"),
+        "Content-Type": "application/json",
+      },
+      data: data,
+    };
+
+    axios
+      .request(config)
+      .then((response) => {
+        console.log(JSON.stringify(response.data));
+        fetchTodos();
+      })
+      .catch((error) => {
+        console.log(error);
+      });
   };
-
-  useEffect(() => {
-    // Add your API call for todos here
-    async function fetchTodos() {
-      const response = await fetch("http://localhost:5000/api/v1/todos");
-      const data = await response.json();
-      setTodos(data);
-    }
-
-    fetchTodos();
-  }, []);
   return (
     <div className="bg-gray-50 dark:bg-gray-900 " id="main">
       <section className="bg-gray-50 dark:bg-gray-900 h-100%">
@@ -61,17 +100,17 @@ export default function Dashboard() {
               </form>
             </div>
           </div>
-          {todos.length && (
+          {todos.length ? (
             <>
               <div className="m-5">
                 <SubHeading heading="Todos List" />
               </div>
 
               <div>
-                <Table todos={todos} />
+                <Table todos={todos} fetchTodos={fetchTodos} />
               </div>
             </>
-          )}
+          ): ""}
         </div>
       </section>
     </div>
